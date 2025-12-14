@@ -11,3 +11,195 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// Role model
+model Role {
+  roleId   Int     @id @default(autoincrement()) @map("role_id")
+  roleName String? @db.VarChar(255) @map("role_name")
+
+  // Relations
+  users User[]
+
+  @@map("roles")
+}
+
+// User model
+model User {
+  userId       String   @id @default(uuid()) @db.Uuid @map("user_id")
+  username     String?  @db.VarChar(255)
+  email        String?  @db.VarChar(255)
+  phoneNumber  String?  @db.VarChar(255) @map("phone_number")
+  passwordHash String?  @db.Text @map("password_hash")
+  roleId       Int?     @map("role_id")
+  createdAt    DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  role            Role?             @relation(fields: [roleId], references: [roleId])
+  userDetails     UserDetails?
+  children        Child[]
+  announcements   Announcement[]
+  notifications   UserNotification[]
+
+  @@map("users")
+}
+
+// User Details model
+model UserDetails {
+  userId      String  @id @db.Uuid @map("user_id")
+  fullName    String? @db.VarChar(255) @map("full_name")
+  address     String? @db.Text
+  nik         String? @db.VarChar(255)
+  posyanduUnit String? @db.VarChar(255) @map("posyandu_unit")
+
+  // Relations
+  user User @relation(fields: [userId], references: [userId])
+
+  @@map("users_details")
+}
+
+// Child model
+model Child {
+  childId       String    @id @default(uuid()) @db.Uuid @map("child_id")
+  parentUserId  String?   @db.Uuid @map("parent_user_id")
+  fullName      String?   @db.VarChar(255) @map("full_name")
+  dateOfBirth   DateTime? @db.Date @map("date_of_birth")
+  gender        String?   @db.VarChar(255)
+  isActive      Boolean?  @map("is_active")
+  createdAt     DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  parentUser    User?               @relation(fields: [parentUserId], references: [userId])
+  growthRecords GrowthRecord[]
+  locations     ChildLocation[]
+  healthRecords HealthRecord[]
+
+  @@map("Children")
+}
+
+// Growth Records model
+model GrowthRecord {
+  recordId      BigInt    @id @default(autoincrement()) @map("record_id")
+  childId       String?   @db.Uuid @map("child_id")
+  kaderUserId   String?   @db.Uuid @map("kader_user_id")
+  checkDate     DateTime? @db.Date @map("check_date")
+  weightKg      Decimal?  @map("weight_kg")
+  heightCm      Decimal?  @map("height_cm")
+  lilaCm        Decimal?  @map("lila_cm")
+  ageInMonths   Int?      @map("age_in_months")
+  stuntingStatus String?  @db.VarChar(255) @map("stunting_status")
+  isAtRisk      Boolean?  @map("is_at_risk")
+  notes         String?   @db.Text
+  createdAt     DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  child Child? @relation(fields: [childId], references: [childId])
+
+  @@map("growth_records")
+}
+
+// Schedule model
+model Schedule {
+  scheduleId   Int       @id @default(autoincrement()) @map("schedule_id")
+  title        String?   @db.VarChar(255)
+  description  String?   @db.Text
+  scheduleDate DateTime? @db.Timestamp @map("schedule_date")
+  type         String?   @db.VarChar(255)
+  targetRole   String?   @db.VarChar(255) @map("target_role")
+
+  // Relations
+  notifications UserNotification[]
+
+  @@map("schedules")
+}
+
+// User Notification model
+model UserNotification {
+  notificationId BigInt    @id @default(autoincrement()) @map("notification_id")
+  userId         String?   @db.Uuid @map("user_id")
+  scheduleId     Int?      @map("schedule_id")
+  message        String?   @db.Text
+  isRead         Boolean?  @map("is_read")
+  createdAt      DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  user     User?     @relation(fields: [userId], references: [userId])
+  schedule Schedule? @relation(fields: [scheduleId], references: [scheduleId])
+
+  @@map("user_notifications")
+}
+
+// Announcement model
+model Announcement {
+  announcementId String    @id @default(uuid()) @db.Uuid @map("announcement_id")
+  title          String?   @db.VarChar(255)
+  content        String?   @db.Text
+  postedByUserId String?   @db.Uuid @map("posted_by_user_id")
+  postDate       DateTime? @db.Date @map("post_date")
+  attachmentUrl  String?   @db.Text @map("attachment_url")
+  isPublished    Boolean?  @map("is_published")
+  createdAt      DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  postedByUser User? @relation(fields: [postedByUserId], references: [userId])
+
+  @@map("announcements")
+}
+
+// Education Article model
+model EducationArticle {
+  articleId String    @id @default(uuid()) @db.Uuid @map("article_id")
+  title     String?   @db.VarChar(255)
+  category  String?   @db.VarChar(255)
+  content   String?   @db.Text
+  createdAt DateTime? @db.Timestamp @map("created_at")
+
+  @@map("education_articles")
+}
+
+// Posyandu model
+model Posyandu {
+  posyanduId String    @id @default(uuid()) @db.Uuid @map("posyandu_id")
+  name       String?   @db.VarChar(255)
+  address    String?   @db.Text
+  village    String?   @db.VarChar(255)
+  distric    String?   @db.VarChar(255)
+  createdAt  DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  childLocations ChildLocation[]
+
+  @@map("posyandu")
+}
+
+// Child Location model
+model ChildLocation {
+  logId      String    @id @default(uuid()) @db.Uuid @map("log_id")
+  childId    String?   @db.Uuid @map("child_id")
+  posyanduId String?   @db.Uuid @map("posyandu_id")
+  rt         String?   @db.VarChar(10)
+  rw         String?   @db.VarChar(10)
+  address    String?   @db.Text
+  createdAt  DateTime? @db.Timestamp @map("created_at")
+
+  // Relations
+  child    Child?    @relation(fields: [childId], references: [childId])
+  posyandu Posyandu? @relation(fields: [posyanduId], references: [posyanduId])
+
+  @@map("child_location")
+}
+
+// Health Record model
+model HealthRecord {
+  healId       String    @id @default(uuid()) @db.Uuid @map("healt_id")
+  childId      String?   @db.Uuid @map("child_id")
+  type         String?   @db.VarChar(100)
+  scheduleDate DateTime? @db.Date @map("schedule_date")
+  status       String?   @db.VarChar(50)
+  givenDate    DateTime? @db.Date @map("given_date")
+  notes        String?   @db.Text
+
+  // Relations
+  child Child? @relation(fields: [childId], references: [childId])
+
+  @@map("healt_records")
+}
