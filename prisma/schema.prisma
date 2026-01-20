@@ -5,11 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // Role model
@@ -169,37 +170,4 @@ model Posyandu {
   childLocations ChildLocation[]
 
   @@map("posyandu")
-}
-
-// Child Location model
-model ChildLocation {
-  logId      String    @id @default(uuid()) @db.Uuid @map("log_id")
-  childId    String?   @db.Uuid @map("child_id")
-  posyanduId String?   @db.Uuid @map("posyandu_id")
-  rt         String?   @db.VarChar(10)
-  rw         String?   @db.VarChar(10)
-  address    String?   @db.Text
-  createdAt  DateTime? @db.Timestamp @map("created_at")
-
-  // Relations
-  child    Child?    @relation(fields: [childId], references: [childId])
-  posyandu Posyandu? @relation(fields: [posyanduId], references: [posyanduId])
-
-  @@map("child_location")
-}
-
-// Health Record model
-model HealthRecord {
-  healId       String    @id @default(uuid()) @db.Uuid @map("healt_id")
-  childId      String?   @db.Uuid @map("child_id")
-  type         String?   @db.VarChar(100)
-  scheduleDate DateTime? @db.Date @map("schedule_date")
-  status       String?   @db.VarChar(50)
-  givenDate    DateTime? @db.Date @map("given_date")
-  notes        String?   @db.Text
-
-  // Relations
-  child Child? @relation(fields: [childId], references: [childId])
-
-  @@map("healt_records")
 }
